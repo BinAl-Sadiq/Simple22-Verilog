@@ -1,0 +1,69 @@
+/*Sizes & Counts*/
+`define IMEMSIZE 5/*The count of instructions at the instructions memory*/
+`define ISIZE 32/*instruction size*/
+`define IBISIZE 5/*instruction bit index size*/
+`define RAMSIZE 5/*The count of words at RAM memory*/
+`define WSIZE 10/*Word size*/
+`define RSIZE 32/*Registers' size*/
+
+/*Opcodes*/
+`define ADD 5'b00000/*add GPRn0 GPRn1 GPRn2 >> GPRn0 = GPRn1 + GPRn2*/
+`define SUB 5'b00001/*sub GPRn0 GPRn1 GPRn2 >> GPRn0 = GPRn1 - GPRn2*/
+`define MUL 5'b00010/*mul GPRn0 GPRn1 GPRn2 >> GPRn0 = GPRn1 * GPRn2*/
+`define DIV 5'b00011/*div GPRn0 GPRn1 GPRn2 >> GPRn0 = int(GPRn1 / GPRn2)*/
+`define STORE 5'b00100/*store a word into RAM at address GPR0 from a register >> store GPRn*/
+`define LOAD 5'b00101/*load a word from RAM at address GPR0 to a register >> load GPRn*/
+`define SET 5'b00110/*Set immediate to a register >> set GPRn 289*/
+`define INT 5'b00111/*Interrupt >> int 15*/
+
+module CPU(input clk, input final_pc, input execute);
+
+	/*DATA & INSTRUCTIONS MEMORIES*/
+	reg[`IMEMSIZE-1:0] instructions[`ISIZE-1:0];
+	reg[`RAMSIZE-1:0] RAM[`WSIZE-1:0];
+	
+	/*SPECIAL REGISTERS*/
+	reg[`RSIZE-1:0] pc = 0;//program counter >> pointer for instructions memory
+	reg[`RSIZE-1:0] sp = 0;//stack pointer >> pointer for RAM memory
+	
+	/*GENERAL PURPOSE REGISTERS >> GPRs*/
+	reg[2:0] GPRs[`RSIZE-1:0];
+	`define GPR0 GPRs[3'b000]/*This one has unique uses, it is used as a pointer to laod/store a word from/to memory*/
+	
+	reg[`ISIZE-1:0] instruction = 0;
+	reg need_initialization = 1;
+	always@(posedge clk) begin
+		if (execute) begin
+			if (need_initialization) begin
+				need_initialization <= 0;
+				pc <= 0;
+				sp <= 0;
+				GPRs[3'b000] <= 0;
+				GPRs[3'b001] <= 0;
+				GPRs[3'b010] <= 0;
+				GPRs[3'b011] <= 0;
+				GPRs[3'b100] <= 0;
+				GPRs[3'b101] <= 0;
+				GPRs[3'b110] <= 0;
+				GPRs[3'b111] <= 0;
+			end
+			else if (final_pc >= pc) begin
+				instruction = instructions[pc];
+				case(instruction[4:0])
+					`ADD: GPRs[instruction[7:5]] <= GPRs[instruction[10:8]] + GPRs[instruction[13:11]];
+					`SUB: GPRs[instruction[7:5]] <= GPRs[instruction[10:8]] - GPRs[instruction[13:11]];
+					`MUL: GPRs[instruction[7:5]] <= GPRs[instruction[10:8]] * GPRs[instruction[13:11]];
+					`DIV: GPRs[instruction[7:5]] <= GPRs[instruction[10:8]] / GPRs[instruction[13:11]];
+					`STORE: RAM[`GPR0] <= GPRs[instruction[7:5]];
+					`LOAD: GPRs[instruction[7:5]] <= RAM[`GPR0];
+					`SET: GPRs[instruction[7:5]] <= GPRs[instruction[31:8]];
+					`INT: begin end
+				endcase
+				
+				pc <= pc + 1;
+			end
+		end
+		else need_initialization <= 1;
+	end
+	
+endmodule 

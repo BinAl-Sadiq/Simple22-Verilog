@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Thu May 23 14:59:17 2024
+Quartus Prime Version : 18.1.0 Build 625 09/12/2018 SJ Lite Edition
+Revision Name : IO_Handler
+Top-level Entity Name : IO_Handler
+Family : Cyclone IV E
+Total logic elements : 2,684
+    Total combinational functions : 2,356
+    Dedicated logic registers : 584
+Total registers : 584
+Total pins : 3
+Total virtual pins : 0
+Total memory bits : 64,000
+Embedded Multiplier 9-bit elements : 6
+Total PLLs : 0

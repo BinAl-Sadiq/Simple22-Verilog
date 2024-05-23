@@ -1,0 +1,53 @@
+module IOHandler
+(
+	input clk, 
+	input ISub,//KEY0 >> push it to submit the part of instruction that is entered at switches[:]
+	input cursorRight,//KEY1 >> move the cursor to the right
+	input cursorLeft,//KEY2 >> move the cursor to the left
+	input boot,//KEY3 >> start executing the instructions
+	input[7:0] IPSs,// SW0-SW7 >> Instruction Part Switches. Used to enter an instruction by parts.
+	input[17:8] GPSs,// SW8-SW17 >> General Purpose Switches
+	output[17:0] RLEDs,
+	output[7:0] GLEDs
+);
+
+	reg[`IMEMSIZE-1:0] instructions[`ISIZE-1:0];
+	reg[`RSIZE-1:0] pc = 0;
+	reg execute = 0;
+	reg[49:0] counter = 0;//this will get incremented at each clock cycle. This will last to 260 days.
+	reg[49:0] debouncer = 0;
+	reg[`ISIZE-1:0] new_instruction = 0;
+	reg[`ISIZE-1:0] whole_instruction = 0;
+	reg[`IBISIZE-1:0] IBI = 0;//instruction bit index
+	
+	CPU cpu(clk, pc, execute);
+	
+	always@(posedge clk) counter <= counter + 1;
+	
+	always@(posedge ISub, posedge cursorRight, posedge cursorLeft) begin
+		if (counter - debouncer > 100_000) begin
+			if (ISub) begin
+				new_instruction[IBI] <= IPSs[0];
+				new_instruction[IBI + 1] <= IPSs[1];
+				new_instruction[IBI + 2] <= IPSs[2];
+				new_instruction[IBI + 3] <= IPSs[3];
+				new_instruction[IBI + 4] <= IPSs[4];
+				new_instruction[IBI + 5] <= IPSs[5];
+				new_instruction[IBI + 6] <= IPSs[6];
+				new_instruction[IBI + 7] <= IPSs[7];
+				IBI = IBI + 8;
+				if (IBI == `ISIZE) begin
+					IBI <= 0;
+					instructions[pc] <= new_instruction;
+					pc <= pc + 1;
+				end
+			end
+			else if (cursorRight || cursorLeft) begin
+				IBI <= IBI + (cursorRight ? -8 : 8);
+			end
+		end
+		
+		debouncer <= counter;
+	end
+	
+endmodule 

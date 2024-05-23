@@ -1,0 +1,14 @@
+
+State Machine - |IO_Handler|UART_Rx:uart_rx1|state
+Name state.STOP_STATE state.GET_BIT_STATE state.START_STATE state.00 
+state.00 0 0 0 0 
+state.START_STATE 0 0 1 1 
+state.GET_BIT_STATE 0 1 0 1 
+state.STOP_STATE 1 0 0 1 
+
+State Machine - |IO_Handler|UART_Tx:uart_tx1|state
+Name state.STOP_STATE state.SEND_BIT_STATE state.START_STATE state.00 
+state.00 0 0 0 0 
+state.START_STATE 0 0 1 1 
+state.SEND_BIT_STATE 0 1 0 1 
+state.STOP_STATE 1 0 0 1 
